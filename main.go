@@ -19,7 +19,7 @@ import (
 
 // This is the mirror where we'll get the ISO. The full list of mirrors can be found on the main site here:
 // https://www.archlinux.org/download/
-var mirror = "https://mirrors.ocf.berkeley.edu/archlinux/iso/latest"
+var mirror = "https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/"
 
 var units = []string{"B", "K", "M", "G"}
 
@@ -56,7 +56,7 @@ func main() {
 
 	// Download the ISO.
 	fmt.Println("Downloading", filename, "...")
-	if err := downloadISO(url + filename, tmpFile); err != nil {
+	if err := downloadISO(url + "/" + filename, tmpFile); err != nil {
 		fmt.Println("Error downloading ISO:", err)
 		os.Exit(1)
 	}
