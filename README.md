@@ -21,4 +21,4 @@ flasharch /full/path/to/usb
 Change `/full/path/to/usb` to the device file of your USB (e.g. `/dev/sdc`). Device files can be discovered with `lsblk`.
 
 ## Configuration
-The only setting you might want to configure is the mirror holding the ISO file. A full list of mirrors is [here](https://www.archlinux.org/download/), under "HTTP Direct Downloads". Choose one you like, and set is as `var mirror` in [main.go](main.go), right beneath the import statements.
+The only setting you might want to configure is the mirror holding the ISO file. A full list of mirrors is [here](https://www.archlinux.org/download/), under "HTTP Direct Downloads". Choose one you like, and set is as `var mirror` in [main.go](main.go), right beneath the import statements. Please note that the path in the URL should end in `/iso/latest/` to get the current release. Optionally choose a different directory to flash a previous release.
