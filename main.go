@@ -1,16 +1,17 @@
 package main
 
 import (
+	"runtime"
 	"fmt"
-	"path"
-	"net/url"
-	"net/http"
-	"golang.org/x/net/html"
-	"strings"
 	"os"
 	"os/exec"
-	"io"
+	"path"
 	"syscall"
+	"net/url"
+	"strings"
+	"net/http"
+	"golang.org/x/net/html"
+	"io"
 	"math"
 	"strconv"
 )
@@ -29,13 +30,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Get the path to the USB drive and perform some sanity checks.
+	// Get the path to the USB drive, and perform some sanity checks.
 	usb := getUSB()
 	if usb == "" {
 		os.Exit(1)
 	}
 
-	// We're going to look in here for the ISO we want to download. We'll format it and add the path as needed.
+	// Format the URL that we're going to access for downloading the ISO.
 	url := getURL()
 	if url == "" {
 		os.Exit(1)
@@ -53,13 +54,12 @@ func main() {
 
 	// Download the ISO.
 	fmt.Println("Downloading", filename, "...")
-	bytes, err := downloadISO(url + filename, tmpFile)
-	if err != nil {
+	if err := downloadISO(url + filename, tmpFile); err != nil {
 		fmt.Println("Error downloading ISO:", err)
 		os.Exit(1)
 	}
 	fmt.Printf("\n") // Flush last progress line.
-	fmt.Println("Downloaded complete")
+	fmt.Println("Download complete")
 
 	// Flash the ISO the specified USB.
 	fmt.Println("Flashing ISO to", usb)
@@ -79,7 +79,7 @@ func main() {
 
 // getUSB checks the provided path to the USB drive and returns it back to the caller.
 func getUSB() string {
-	// Make sure we were provided a path for the USB drive.
+	// Make sure the user provided a path to the USB drive.
 	if len(os.Args) != 2 {
 		if len(os.Args) < 2 {
 			fmt.Println("Missing path to USB drive")
@@ -234,39 +234,40 @@ func parseBody(parent *html.Node, tags []string) string {
 // downloadISO downloads the ISO at the url. In order to show a progress bar, we're going to wrap our HTTP response in a
 // Tee Reader. This will allow us to monitor the number of bytes received in realtime. Thank you, Edd Turtle, for this
 // recommendation.
-func downloadISO(url, filename string) (int64, error) {
+func downloadISO(url, filename string) error {
 	// Create a save point.
 	file, err := os.Create(filename)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	defer file.Close()
 
 	// Grab the ISO file's data.
 	resp, err := http.Get(url)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	defer resp.Body.Close()
 
 	// Make sure we accessed everything correctly.
 	if resp.StatusCode != 200 {
-		return 0, fmt.Errorf("%v", resp.Status)
+		return fmt.Errorf("%v", resp.Status)
 	}
 
 	// Set up our progress bar.
-	var p progress
-	p.total = clarify(int(resp.ContentLength))
+	p := progress{total: reduce(int(resp.ContentLength))}
 	t := io.TeeReader(resp.Body, &p)
 
 	// Save the file.
-	return io.Copy(file, t)
+	_, err = io.Copy(file, t)
+
+	return err
 }
 
 
 // Progress will be used to display a progress bar during the download operation.
 type progress struct {
-	total string // size of file to download, ready for printing
+	total string // size of file to be downloaded, ready for printing
 	have  int    // number of bytes we currently have
 	count int    // running count of write operations, for determining if we should print or not
 }
@@ -285,14 +286,14 @@ func (pr *progress) Write(p []byte) (int, error) {
 	fmt.Printf("\r%s", strings.Repeat(" ", 50))
 
 	// Print the current transfer status.
-	fmt.Printf("\rReceived %v of %v total", clarify(pr.have), pr.total)
+	fmt.Printf("\rReceived %v of %v total", reduce(pr.have), pr.total)
 
 	return n, nil
 }
 
 
-// clarify will convert the number of bytes into its human-readable value (less than 1024) with SI unit suffix appended.
-func clarify(n int) string {
+// reduce will convert the number of bytes into its human-readable value (less than 1024) with SI unit suffix appended.
+func reduce(n int) string {
 	index := int(math.Log2(float64(n))) / 10
 	n >>= (10 * index)
 
