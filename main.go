@@ -19,7 +19,7 @@ import (
 
 // This is the mirror where we'll get the ISO. The full list of mirrors can be found on the main site here:
 // https://www.archlinux.org/download/
-var mirror = "https://mirrors.ocf.berkeley.edu/archlinux/"
+var mirror = "https://mirrors.ocf.berkeley.edu/archlinux/iso/latest"
 
 var units = []string{"B", "K", "M", "G"}
 
@@ -36,11 +36,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Format the URL that we're going to access for downloading the ISO.
-	url := getURL()
-	if url == "" {
+	// Verify that the provided mirror URL is valid.
+	u, err := url.Parse(mirror)
+	if err != nil {
+		fmt.Println("Error parsing mirror:", err)
 		os.Exit(1)
 	}
+	url := u.String()
 	fmt.Println("Looking for ISO in", url)
 
 	// Get the filename of the ISO we want.
@@ -129,53 +131,6 @@ func getUSB() string {
 	return usb
 }
 
-// getURL will make sure we look for the ISO in the correct directory of the chosen mirror. We need to look in
-// iso/latest for the file.
-func getURL() string {
-	var u   *url.URL
-	var err  error
-
-	if mirror == "" {
-		fmt.Println("Please specify a mirror")
-		return ""
-	}
-
-	u, err = url.Parse(mirror)
-	if err != nil {
-		fmt.Println("Error parsing mirror (code 1):", err)
-		return ""
-	}
-
-	// Before we start checking the path, let's make sure we have a terminating slash.
-	if !strings.HasSuffix(u.Path, "/") {
-		u, err = u.Parse("/")
-		if err != nil {
-			fmt.Println("Error parsing mirror (code 2):", err)
-			return ""
-		}
-	}
-
-	// Now, let's traverse the heirarchy a couple of levels to make sure we have or add the right path.
-	if !strings.HasSuffix(u.Path, "latest/") {
-		// We need to add the latest directory. Let's see if we also need to add iso.
-		if !strings.HasSuffix(u.Path, "iso/") {
-			// We also need to add the iso directory.
-			u, err = u.Parse("iso/")
-			if err != nil {
-				fmt.Println("Error parsing mirror (code 3):", err)
-				return ""
-			}
-		}
-		u, err = u.Parse("latest/")
-		if err != nil {
-			fmt.Println("Error parsing mirror (code 4):", err)
-			return ""
-		}
-	}
-
-	return u.String()
-}
-
 // getFilename parses the mirror's directory and pulls out the name of the ISO file that we will download.
 func getFilename(url string) string {
 	resp, err := http.Get(url)
@@ -196,7 +151,7 @@ func getFilename(url string) string {
 	tags := []string{"html", "body", "table", "tbody", "tr", "td", "a"}
 	filename := parseBody(doc, tags)
 	if filename == "" {
-		fmt.Println("Mirror does not have latest ISO")
+		fmt.Println("Mirror does not have the latest ISO")
 		return ""
 	}
 
