@@ -51,30 +51,57 @@ func main() {
 		os.Exit(1)
 	}
 
-	// This is where we will save the ISO file.
-	tmpFile := os.TempDir() + "/" + filename
+	// Use these paths to download and save the ISO.
+	url += "/" + filename
+	isoFile := os.TempDir() + "/" + filename
 
 	// Download the ISO.
 	fmt.Println("Downloading", filename, "...")
-	if err := downloadISO(url + "/" + filename, tmpFile); err != nil {
+	if err := downloadFile(url, isoFile); err != nil {
 		fmt.Println("Error downloading ISO:", err)
 		os.Exit(1)
 	}
 	fmt.Printf("\n") // Flush last progress line.
 	fmt.Println("Download complete")
 
-	// Flash the ISO the specified USB.
+	// Use these paths to download and save the ISO's signature.
+	filename += ".sig"
+	url += ".sig"
+	sigFile := isoFile + ".sig"
+
+	// Download the ISO's signature.
+	fmt.Println("Downloading", filename, "...")
+	if err := downloadFile(url, sigFile); err != nil {
+		fmt.Println("Error downloading signature:", err)
+		os.Exit(1)
+	}
+	fmt.Printf("\n") // Flush last progress line.
+	fmt.Println("Download complete")
+
+	// Verify the ISO with the signature.
+	fmt.Println("Verifying ISO")
+	cmd := exec.Command("gpg", "--keyserver-options", "auto-key-retrieve", "--verify", sigFile, isoFile)
+	if err := cmd.Run(); err != nil {
+		fmt.Println("Error verifying ISO:", err)
+		os.Exit(1)
+	}
+
+	// Flash the ISO to the specified USB.
 	fmt.Println("Flashing ISO to", usb)
-	cmd := exec.Command("dd", "if=" + tmpFile, "of=" + usb, "bs=1M", "status=progress")
+	cmd = exec.Command("dd", "if=" + isoFile, "of=" + usb, "bs=1M", "status=progress")
 	if err := cmd.Run(); err != nil {
 		fmt.Println("Error flashing ISO:", err)
 		os.Exit(1)
 	}
 	fmt.Println("Flash complete")
 
-	// Clean up the temporary file we created.
-	if err := os.Remove(tmpFile); err != nil {
-		fmt.Println("Error removing temporary file:", err)
+	// Clean up the temporary files we created.
+	if err := os.Remove(isoFile); err != nil {
+		fmt.Println("Error removing ISO file:", err)
+		os.Exit(1)
+	}
+	if err := os.Remove(sigFile); err != nil {
+		fmt.Println("Error removing signature file:", err)
 		os.Exit(1)
 	}
 }
@@ -186,10 +213,10 @@ func parseBody(parent *html.Node, tags []string) string {
 	return ""
 }
 
-// downloadISO downloads the ISO at the url. In order to show a progress bar, we're going to wrap our HTTP response in a
-// Tee Reader. This will allow us to monitor the number of bytes received in realtime. Thank you, Edd Turtle, for this
+// downloadFile downloads the file at the url. In order to show a progress bar, we're going to wrap our HTTP response in
+// a Tee Reader. This will allow us to monitor the number of bytes received in realtime. Thank you, Edd Turtle, for this
 // recommendation.
-func downloadISO(url, filename string) error {
+func downloadFile(url, filename string) error {
 	// Create a save point.
 	file, err := os.Create(filename)
 	if err != nil {
@@ -197,7 +224,7 @@ func downloadISO(url, filename string) error {
 	}
 	defer file.Close()
 
-	// Grab the ISO file's data.
+	// Grab the file's data.
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
