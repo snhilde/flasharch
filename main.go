@@ -81,17 +81,27 @@ func main() {
 	// Verify the ISO with the signature.
 	fmt.Println("Verifying ISO")
 	cmd := exec.Command("gpg", "--keyserver-options", "auto-key-retrieve", "--verify", sigFile, isoFile)
-	if err := cmd.Run(); err != nil {
+	if output, err := cmd.CombinedOutput(); err != nil {
 		fmt.Println("Error verifying ISO:", err)
 		os.Exit(1)
+	} else {
+		lines := strings.Split(string(output), "\n")
+		for _, v := range lines {
+			fmt.Println("\t", v)
+		}
 	}
 
 	// Flash the ISO to the specified USB.
 	fmt.Println("Flashing ISO to", usb)
 	cmd = exec.Command("dd", "if=" + isoFile, "of=" + usb, "bs=1M", "status=progress")
-	if err := cmd.Run(); err != nil {
+	if output, err := cmd.CombinedOutput(); err != nil {
 		fmt.Println("Error flashing ISO:", err)
 		os.Exit(1)
+	} else {
+		lines := strings.Split(string(output), "\n")
+		for _, v := range lines {
+			fmt.Println("\t", v)
+		}
 	}
 	fmt.Println("Flash complete")
 
