@@ -1,28 +1,26 @@
 package main
 
 import (
-	"runtime"
 	"fmt"
-	"os"
-	"os/exec"
-	"path"
-	"syscall"
-	"net/url"
-	"strings"
-	"net/http"
 	"golang.org/x/net/html"
 	"io"
 	"math"
+	"net/http"
+	"net/url"
+	"os"
+	"os/exec"
+	"path"
+	"runtime"
 	"strconv"
+	"strings"
+	"syscall"
 )
-
 
 // This is the mirror where we'll get the ISO. The full list of mirrors can be found on the main site here:
 // https://www.archlinux.org/download/
 var mirror = "https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/"
 
 var units = []string{"B", "K", "M", "G"}
-
 
 func main() {
 	if runtime.GOOS != "linux" {
@@ -93,7 +91,7 @@ func main() {
 
 	// Flash the ISO to the specified USB.
 	fmt.Println("Flashing ISO to", usb)
-	cmd = exec.Command("dd", "if=" + isoFile, "of=" + usb, "bs=1M", "status=progress")
+	cmd = exec.Command("dd", "if="+isoFile, "of="+usb, "bs=1M", "status=progress")
 	if output, err := cmd.CombinedOutput(); err != nil {
 		fmt.Println("Error flashing ISO:", err)
 		os.Exit(1)
@@ -155,9 +153,9 @@ func getUSB() string {
 
 		// Find out which of the file's user, group, and other write bits are set.
 		perms := info.Mode().Perm() & os.ModePerm
-		uWrite := perms & (1 << 7) > 0
-		gWrite := perms & (1 << 4) > 0
-		oWrite := perms & (1 << 1) > 0
+		uWrite := perms&(1<<7) > 0
+		gWrite := perms&(1<<4) > 0
+		oWrite := perms&(1<<1) > 0
 
 		if !(isUser && uWrite) && !(isGroup && gWrite) && !oWrite {
 			fmt.Println("Cannot write to", usb)
@@ -256,7 +254,6 @@ func downloadFile(url, filename string) error {
 	return err
 }
 
-
 // Progress will be used to display a progress bar during the download operation.
 type progress struct {
 	total string // size of file to be downloaded, ready for printing
@@ -270,7 +267,7 @@ func (pr *progress) Write(p []byte) (int, error) {
 
 	// We don't need to do expensive print operations that often.
 	pr.count++
-	if pr.count % 50 > 0 {
+	if pr.count%50 > 0 {
 		return n, nil
 	}
 
@@ -282,7 +279,6 @@ func (pr *progress) Write(p []byte) (int, error) {
 
 	return n, nil
 }
-
 
 // reduce will convert the number of bytes into its human-readable value (less than 1024) with SI unit suffix appended.
 func reduce(n int) string {
