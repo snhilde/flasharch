@@ -194,10 +194,10 @@ func getFilename(url string) string {
 }
 
 // parseBody parses the provided HTML and pulls out the name of the ISO that we want to download.
-func parseBody(parent *html.Node, tags []string) string {
+func parseBody(node *html.Node, tags []string) string {
 	if len(tags) == 0 {
 		// We found a link tag. Let's see if it's pointing to an ISO.
-		for _, a := range parent.Attr {
+		for _, a := range node.Attr {
 			if a.Key == "href" && strings.HasSuffix(a.Val, ".iso") {
 				// We found it.
 				return a.Val
@@ -208,7 +208,7 @@ func parseBody(parent *html.Node, tags []string) string {
 	}
 
 	// Check each child node until we find an element with the desired tag.
-	for child := parent.FirstChild; child != nil; child = child.NextSibling {
+	for child := node.FirstChild; child != nil; child = child.NextSibling {
 		if child.Type == html.ElementNode && child.Data == tags[0] {
 			// We found the tag we want. Keep going down.
 			if iso := parseBody(child, tags[1:]); iso != "" {
