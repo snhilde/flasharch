@@ -1,6 +1,5 @@
 ![Maintenance Badge](https://img.shields.io/badge/Maintained-yes-success)
 ![Class Badge](https://img.shields.io/badge/Status-experimental-yellow)
-![Version Badge](https://img.shields.io/badge/Version-1.0-informational)
 [![GoReportCard example](https://goreportcard.com/badge/github.com/snhilde/flasharch)](https://goreportcard.com/report/github.com/snhilde/flasharch)
 
 # flasharch
