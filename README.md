@@ -1,6 +1,7 @@
 ![Maintenance Badge](https://img.shields.io/badge/Maintained-yes-success)
 ![Class Badge](https://img.shields.io/badge/Status-experimental-yellow)
 [![GoReportCard example](https://goreportcard.com/badge/github.com/snhilde/flasharch)](https://goreportcard.com/report/github.com/snhilde/flasharch)
+[![Build Status](https://travis-ci.com/snhilde/flasharch.svg?branch=master)](https://travis-ci.com/snhilde/flasharch)
 
 # flasharch
 Convenient script for downloading the latest Arch Linux ISO and creating a bootable flash drive
