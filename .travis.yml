@@ -1,0 +1,18 @@
+language: go
+go: 1.15.x
+go_import_path: github.com/snhilde/flasharch
+
+dist: bionic
+
+env:
+    - GO111MODULE=on
+
+install:
+    - go mod download
+    - go get golang.org/x/lint/golint
+    - go install golang.org/x/lint/golint
+
+script:
+    - make fmt
+    - make lint
+    - make build
