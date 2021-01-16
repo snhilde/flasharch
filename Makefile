@@ -16,7 +16,7 @@ fmt-check:
 lint-check:
 	@failed=0; \
 	for file in $(GOFILES); do \
-		golint -min_confidence 0.3 -set_exit_status $$file || failed=1; \
+		golint -min_confidence 0.3 $$file || failed=1; \
 	done; \
 	if [ $$failed -ne 0 ]; then \
 		exit 1; \
@@ -25,4 +25,7 @@ lint-check:
 # Build the executable.
 .PHONY: build
 build:
-	@go build && rm flasharch
+	@go build || exit 1; \
+	if [ -f flasharch ]; then \
+		rm flasharch; \
+	fi;
