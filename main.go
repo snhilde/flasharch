@@ -275,7 +275,7 @@ func (pr *progress) Write(p []byte) (int, error) {
 	fmt.Printf("\r%s", strings.Repeat(" ", 50))
 
 	// Print the current transfer status.
-	fmt.Printf("\rReceived %v of %v total", reduce(pr.have), pr.total)
+	fmt.Printf("\rReceived %v of %v", reduce(pr.have), pr.total)
 
 	return n, nil
 }
